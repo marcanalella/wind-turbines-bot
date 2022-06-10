@@ -95,6 +95,9 @@ func HandleTelegramWebHook(service Service) func(w http.ResponseWriter, r *http.
 					responseSite.Site.Device.Env == "0" &&
 					responseSite.Site.Device.Ext == "0" {
 					b[i] = service.PrepareScheduledMessageNoDataToTelegramChat(siteId, responseSite)
+				} else if responseSite.Site.Device.Operating == "0" &&
+					responseSite.Site.Device.Faulted == "0" {
+					b[i] = service.PrepareScheduledMessageNoOperetingToTelegramChat(siteId, responseSite)
 				} else {
 					b[i] = service.PrepareTextToTelegramChat(siteId, responseSite)
 				}
