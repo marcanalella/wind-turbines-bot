@@ -22,6 +22,7 @@ func main() {
 
 	scheduler := internal.NewService(cfg)
 	scheduler.Schedulednotification()
+	scheduler.Readyz()
 
 	log.Println("Listening ", server.Addr)
 	err = server.ListenAndServe()

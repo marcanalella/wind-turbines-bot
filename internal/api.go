@@ -62,6 +62,21 @@ func HandleTelegramWebHook(service Service) func(w http.ResponseWriter, r *http.
 				log.Printf("turbine infos %s successfully distributed to chat id %d", siteInfo, update.Message.Chat.Id)
 			}
 			return
+		} else if update.Message.Text == "/vestas" {
+			turbinaVestas, err := service.GetVestasTurbineInfo()
+			if err != nil {
+				log.Printf("got error: %s from vestas service", err.Error())
+				return
+			}
+			message = service.PrepareVestasTextToTelegramChat(turbinaVestas)
+			log.Printf("send to chatId, %s", strconv.Itoa(update.Message.Chat.Id))
+			telegramResponseBody, err := service.SendTextToTelegramChat(update.Message.Chat.Id, message)
+			if err != nil {
+				log.Printf("got error %s from telegram, response body is %s", err.Error(), telegramResponseBody)
+			} else {
+				log.Printf("turbine infos %s successfully distributed to chat id %d", siteInfo, update.Message.Chat.Id)
+			}
+			return
 		} else {
 			a := []string{"1384", "1376", "1396", "1397", "1377"}
 			b := make([]string, len(a))
@@ -102,6 +117,16 @@ func HandleTelegramWebHook(service Service) func(w http.ResponseWriter, r *http.
 					b[i] = service.PrepareTextToTelegramChat(siteId, responseSite)
 				}
 			}
+
+			if update.Message.Text == "/all" {
+				turbinaVestas, err := service.GetVestasTurbineInfo()
+				if err != nil {
+					log.Printf("got error: %s from vestas service", err.Error())
+					return
+				}
+				message = service.PrepareVestasTextToTelegramChat(turbinaVestas)
+				b = append(b, message)
+			}
 			// Send the punchline back to Telegram
 			log.Printf("send to chatId, %s", strconv.Itoa(update.Message.Chat.Id))
 			telegramResponseBody, err := service.SendTextToTelegramChat(update.Message.Chat.Id, strings.Join(b, " "))
@@ -117,7 +142,7 @@ func HandleTelegramWebHook(service Service) func(w http.ResponseWriter, r *http.
 }
 
 func checkCommand(command string) string {
-	if command == "/start" || command == "/all" {
+	if command == "/start" || command == "/all" || command == "/vestas" || command == "/northern" {
 		return ""
 	}
 

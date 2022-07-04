@@ -18,6 +18,12 @@ type Config struct {
 	NorthernPowerApiEnv1   string `json:"northern_power_api_env_1"`
 	NorthernPowerUser      string `json:"northern_power_user"`
 	NorthernPowerPassword  string `json:"northern_power_password"`
+	VestasApi              string `json:"vestas_api"`
+	VestasStatusPath       string `json:"vestas_status_path"`
+	VestasWindSpeedPath    string `json:"vestas_wind_speed_path"`
+	VestasPowerPath        string `json:"vestas_power_path"`
+	VestasAlarmPath        string `json:"vestas_alarm_path"`
+	VestasProductionPath   string `json:"vestas_energy_path"`
 }
 
 func Load() (Config, error) {

@@ -3,7 +3,9 @@ package internal
 import (
 	"bot/conf"
 	"bot/entity/site_data"
+	"bot/entity/vestas"
 	"encoding/json"
+	"fmt"
 	xj "github.com/basgys/goxml2json"
 	"github.com/enescakir/emoji"
 	"github.com/go-co-op/gocron"
@@ -21,7 +23,11 @@ import (
 type Service interface {
 	GetTurbineInfo(siteId string) (string, error)
 
+	GetVestasTurbineInfo() (vestas.Vestas, error)
+
 	PrepareTextToTelegramChat(command string, turbine site_data.Turbine) string
+
+	PrepareVestasTextToTelegramChat(vestas vestas.Vestas) string
 
 	PrepareScheduledMessageFaultedToTelegramChat(command string, turbine site_data.Turbine) string
 
@@ -40,6 +46,8 @@ type Service interface {
 	SendTextToTelegramChat(chatId int, text string) (string, error)
 
 	Schedulednotification()
+
+	Readyz()
 }
 
 type service struct {
@@ -82,6 +90,82 @@ func (s service) GetTurbineInfo(siteId string) (string, error) {
 
 	log.Printf("retrieved JSON response %s", responseJson)
 	return responseJson.String(), nil
+}
+
+func (s service) GetVestasTurbineInfo() (vestas.Vestas, error) {
+
+	hc := http.Client{}
+	timeMillis, _ := fmt.Println(time.Now().UnixMilli())
+
+	var turbinaVestas vestas.Vestas
+
+	req, _ := http.NewRequest("POST", s.config.VestasApi+s.config.VestasStatusPath+strconv.Itoa(timeMillis), nil)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err := hc.Do(req)
+	if err != nil {
+		log.Printf("error while calling Northern Power API %s", err.Error())
+		return vestas.Vestas{}, err
+	}
+	log.Println(response.Status)
+
+	b, err := io.ReadAll(response.Body)
+	turbinaVestas.Status = string(b)
+
+	req, _ = http.NewRequest("POST", s.config.VestasApi+s.config.VestasPowerPath+strconv.Itoa(timeMillis), nil)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err = hc.Do(req)
+	if err != nil {
+		log.Printf("error while calling Northern Power API %s", err.Error())
+		return vestas.Vestas{}, err
+	}
+	log.Println(response.Status)
+
+	b, err = io.ReadAll(response.Body)
+	turbinaVestas.Power = string(b)
+
+	req, _ = http.NewRequest("POST", s.config.VestasApi+s.config.VestasWindSpeedPath+strconv.Itoa(timeMillis), nil)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err = hc.Do(req)
+	if err != nil {
+		log.Printf("error while calling Northern Power API %s", err.Error())
+		return vestas.Vestas{}, err
+	}
+	log.Println(response.Status)
+
+	b, err = io.ReadAll(response.Body)
+	turbinaVestas.WindSpeed = string(b)
+
+	req, _ = http.NewRequest("POST", s.config.VestasApi+s.config.VestasAlarmPath+strconv.Itoa(timeMillis), nil)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err = hc.Do(req)
+	if err != nil {
+		log.Printf("error while calling Northern Power API %s", err.Error())
+		return vestas.Vestas{}, err
+	}
+	log.Println(response.Status)
+
+	b, err = io.ReadAll(response.Body)
+	turbinaVestas.Alarm = string(b)
+
+	req, _ = http.NewRequest("POST", s.config.VestasApi+s.config.VestasProductionPath+strconv.Itoa(timeMillis), nil)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err = hc.Do(req)
+	if err != nil {
+		log.Printf("error while calling Northern Power API %s", err.Error())
+		return vestas.Vestas{}, err
+	}
+	log.Println(response.Status)
+
+	b, err = io.ReadAll(response.Body)
+	turbinaVestas.Production = string(b)
+
+	log.Printf("retrieved Vestas response %s", turbinaVestas)
+	return turbinaVestas, nil
 }
 
 func (s service) GetDailyPowerInfo(siteId string) (string, error) {
@@ -151,6 +235,15 @@ func (s service) SendTextToTelegramChat(chatId int, text string) (string, error)
 	return bodyString, nil
 }
 
+func (s service) PrepareVestasTextToTelegramChat(vestas vestas.Vestas) string {
+
+	return emoji.RadioButton.String() + "TURBINA VESTAS V2960 " + "\n\n" +
+		emoji.Rocket.String() + "POTENZA TURBINA: " + vestas.Power + "kW" + "\n" +
+		emoji.WindFace.String() + "VELOCITA' DEL VENTO: " + vestas.WindSpeed + "m/s" + "\n" +
+		emoji.Seedling.String() + "ENERGIA GIORNALIERA PRODOTTA: " + vestas.Production + "kWh" + "\n\n" +
+		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + time.Now().String() + "\n\n"
+}
+
 func (s service) PrepareTextToTelegramChat(siteId string, turbine site_data.Turbine) string {
 
 	siteIdReal := ReturnSiteId(siteId)
@@ -170,6 +263,15 @@ func (s service) PrepareScheduledMessageFaultedToTelegramChat(siteId string, tur
 		emoji.WindFace.String() + "VELOCITA' DEL VENTO: " + turbine.Site.Device.Wndspd + "m/s" + "\n" +
 		emoji.Seedling.String() + "ENERGIA GIORNALIERA PRODOTTA: " + turbine.DailyPower + "kWh" + "\n\n" +
 		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + turbine.Site.Ts + "\n\n"
+}
+
+func (s service) PrepareScheduledMessageAlarmVestasToTelegramChat(vestas vestas.Vestas) string {
+	return emoji.RadioButton.String() + "TURBINA VESTAS V2960" + "\n\n" +
+		emoji.Warning.String() + "RIVELATA ANOMALIA: Alarm!\n" +
+		emoji.Rocket.String() + "POTENZA TURBINA: " + vestas.Power + "kW" + "\n" +
+		emoji.WindFace.String() + "VELOCITA' DEL VENTO: " + vestas.WindSpeed + "m/s" + "\n" +
+		emoji.Seedling.String() + "ENERGIA GIORNALIERA PRODOTTA: " + vestas.Production + "kWh" + "\n\n" +
+		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + time.Now().String() + "\n\n"
 }
 
 func (s service) PrepareScheduledMessageEnvToTelegramChat(siteId string, turbine site_data.Turbine) string {
@@ -286,11 +388,64 @@ func (s service) Schedulednotification() {
 			}
 			message = ""
 		}
+
+		turbinaVestas, err := s.GetVestasTurbineInfo()
+		if err != nil {
+			log.Printf("got error when Vestas API %s", err.Error())
+			return
+		}
+
+		if turbinaVestas.Alarm == "1" {
+			message = s.PrepareScheduledMessageAlarmVestasToTelegramChat(turbinaVestas)
+		}
+
+		b := []int{108781761, 1519990871, 494628308}
+		if message != "" {
+			for _, chatId := range b {
+				// Send the punchline back to Telegram
+				log.Printf("send to chatId, %s", strconv.Itoa(chatId))
+				telegramResponseBody, err := s.SendTextToTelegramChat(chatId, message)
+				if err != nil {
+					log.Printf("got error %s from telegram, response body is %s", err.Error(), telegramResponseBody)
+				} else {
+					log.Printf("turbina vestas infos successfully distributed to chat id %d", chatId)
+				}
+			}
+		}
+		message = ""
 	})
 	s1.StartAsync()
 	if err != nil {
 		log.Printf("error creating job: %v", err)
 	}
 	_, t := s1.NextRun()
+	log.Printf("next run at: %s", t)
+}
+
+func (s service) Readyz() {
+	var message string
+	s2 := gocron.NewScheduler(time.UTC)
+	_, err := s2.Every(1).Hour().Do(func() {
+		b := []int{108781761, 1519990871, 494628308}
+		message = "Bot Turbine di Peppe Canalella Running " + emoji.BeamingFaceWithSmilingEyes.String()
+
+		if message != "" {
+			for _, chatId := range b {
+				// Send the punchline back to Telegram
+				log.Printf("send to chatId, %s", strconv.Itoa(chatId))
+				telegramResponseBody, err := s.SendTextToTelegramChat(chatId, message)
+				if err != nil {
+					log.Printf("got error %s from telegram, response body is %s", err.Error(), telegramResponseBody)
+				} else {
+					log.Printf("turbina vestas infos successfully distributed to chat id %d", chatId)
+				}
+			}
+		}
+	})
+	s2.StartAsync()
+	if err != nil {
+		log.Printf("error creating job: %v", err)
+	}
+	_, t := s2.NextRun()
 	log.Printf("next run at: %s", t)
 }
