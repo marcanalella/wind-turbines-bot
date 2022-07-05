@@ -35,7 +35,7 @@ type Service interface {
 
 	PrepareScheduledMessageNoDataToTelegramChat(siteId string, turbine site_data.Turbine) string
 
-	PrepareScheduledMessageNoOperetingToTelegramChat(siteId string, turbine site_data.Turbine) string
+	//PrepareScheduledMessageNoOperetingToTelegramChat(siteId string, turbine site_data.Turbine) string
 
 	PrepareStartMessageToTelegramChat() string
 
@@ -294,15 +294,15 @@ func (s service) PrepareScheduledMessageNoDataToTelegramChat(siteId string, turb
 		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + time.Now().String() + "\n\n"
 }
 
-func (s service) PrepareScheduledMessageNoOperetingToTelegramChat(siteId string, turbine site_data.Turbine) string {
-	siteIdReal := ReturnSiteId(siteId)
-	return emoji.RadioButton.String() + "TURBINA: " + siteIdReal + "\n\n" +
-		emoji.Warning.String() + "TURBINA NON OPERATIVA: ERROR P\n" +
-		emoji.Rocket.String() + "POTENZA TURBINA: " + turbine.Site.Device.Power + "kW" + "\n" +
-		emoji.WindFace.String() + "VELOCITA' DEL VENTO: " + turbine.Site.Device.Wndspd + "m/s" + "\n" +
-		emoji.Seedling.String() + "ENERGIA GIORNALIERA PRODOTTA: " + turbine.DailyPower + "kWh" + "\n\n" +
-		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + time.Now().String() + "\n\n"
-}
+//func (s service) PrepareScheduledMessageNoOperetingToTelegramChat(siteId string, turbine site_data.Turbine) string {
+//	siteIdReal := ReturnSiteId(siteId)
+//	return emoji.RadioButton.String() + "TURBINA: " + siteIdReal + "\n\n" +
+//		emoji.Warning.String() + "TURBINA NON OPERATIVA: ERROR P\n" +
+//		emoji.Rocket.String() + "POTENZA TURBINA: " + turbine.Site.Device.Power + "kW" + "\n" +
+//		emoji.WindFace.String() + "VELOCITA' DEL VENTO: " + turbine.Site.Device.Wndspd + "m/s" + "\n" +
+//		emoji.Seedling.String() + "ENERGIA GIORNALIERA PRODOTTA: " + turbine.DailyPower + "kWh" + "\n\n" +
+//		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + time.Now().String() + "\n\n"
+//}
 
 func (s service) PrepareErrorMessageToTelegramChat() string {
 	return emoji.ExclamationMark.String() + "Non ho capito... comando non implementato.\n\n" +
@@ -368,10 +368,10 @@ func (s service) Schedulednotification() {
 				responseSite.Site.Device.Env == "0" &&
 				responseSite.Site.Device.Ext == "0" {
 				message = s.PrepareScheduledMessageNoDataToTelegramChat(siteId, responseSite)
-			} else if responseSite.Site.Device.Operating == "0" &&
-				responseSite.Site.Device.Faulted == "0" {
-				message = s.PrepareScheduledMessageNoOperetingToTelegramChat(siteId, responseSite)
-			}
+			} //else if responseSite.Site.Device.Operating == "0" &&
+			//responseSite.Site.Device.Faulted == "0" {
+			//message = s.PrepareScheduledMessageNoOperetingToTelegramChat(siteId, responseSite)
+			//}
 
 			b := []int{108781761, 1519990871, 494628308}
 			if message != "" {
