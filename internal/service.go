@@ -425,7 +425,7 @@ func (s service) Schedulednotification() {
 func (s service) Readyz() {
 	var message string
 	s2 := gocron.NewScheduler(time.UTC)
-	_, err := s2.Every(1).Hour().Do(func() {
+	_, err := s2.Every(3).Hour().Do(func() {
 		b := []int{108781761, 1519990871, 494628308}
 		message = "Bot Turbine di Peppe Canalella Running " + emoji.BeamingFaceWithSmilingEyes.String()
 
