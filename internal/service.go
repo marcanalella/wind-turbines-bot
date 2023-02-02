@@ -15,6 +15,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -373,7 +374,10 @@ func (s service) Schedulednotification() {
 			//message = s.PrepareScheduledMessageNoOperetingToTelegramChat(siteId, responseSite)
 			//}
 
-			b := []int{108781761, 1519990871, 494628308}
+			b, err := LoadRecipients()
+			if err != nil {
+				log.Printf("got error from json parser")
+			}
 			if message != "" {
 				for _, chatId := range b {
 					// Send the punchline back to Telegram
@@ -399,7 +403,7 @@ func (s service) Schedulednotification() {
 			message = s.PrepareScheduledMessageAlarmVestasToTelegramChat(turbinaVestas)
 		}
 
-		b := []int{108781761, 1519990871, 494628308}
+		b, err := LoadRecipients()
 		if message != "" {
 			for _, chatId := range b {
 				// Send the punchline back to Telegram
@@ -426,9 +430,11 @@ func (s service) Readyz() {
 	var message string
 	s2 := gocron.NewScheduler(time.UTC)
 	_, err := s2.Every(1).Hour().Do(func() {
-		b := []int{108781761, 1519990871, 494628308}
+		b, err := LoadRecipients()
+		if err != nil {
+			log.Printf("got error from json parser")
+		}
 		message = "Bot Turbine di Peppe Canalella Running " + emoji.BeamingFaceWithSmilingEyes.String()
-
 		if message != "" {
 			for _, chatId := range b {
 				// Send the punchline back to Telegram
@@ -448,4 +454,18 @@ func (s service) Readyz() {
 	}
 	_, t := s2.NextRun()
 	log.Printf("next run at: %s", t)
+}
+
+func LoadRecipients() ([]int, error) {
+	var arr []int
+	recipientsFile, err := os.Open("recipients.json")
+	defer func(configFile *os.File) {
+		err := configFile.Close()
+		if err != nil {
+			log.Printf("could not decode json recipients %s\n", err.Error())
+		}
+	}(recipientsFile)
+	jsonParser := json.NewDecoder(recipientsFile)
+	err = jsonParser.Decode(&arr)
+	return arr, err
 }
