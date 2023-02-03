@@ -15,14 +15,20 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not decode config %s\n", err.Error())
 	}
+
+	recipients, err := conf.LoadRecipients()
+	if err != nil {
+		log.Fatalf("could not decode recipients %s\n", err.Error())
+	}
+
 	server := &http.Server{
 		Addr:    cfg.Address + ":" + cfg.Port,
 		Handler: buildHandler(cfg),
 	}
 
 	scheduler := internal.NewService(cfg)
-	scheduler.Schedulednotification()
-	scheduler.Readyz()
+	scheduler.Schedulednotification(recipients)
+	scheduler.Readyz(recipients)
 
 	log.Println("Listening ", server.Addr)
 	err = server.ListenAndServe()

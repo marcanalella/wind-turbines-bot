@@ -15,7 +15,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -46,9 +45,9 @@ type Service interface {
 
 	SendTextToTelegramChat(chatId int, text string) (string, error)
 
-	Schedulednotification()
+	Schedulednotification(recipients []int)
 
-	Readyz()
+	Readyz(recipients []int)
 }
 
 type service struct {
@@ -334,7 +333,7 @@ func ReturnSiteId(siteId string) string {
 	return siteIdReal
 }
 
-func (s service) Schedulednotification() {
+func (s service) Schedulednotification(recipients []int) {
 	var message string
 	s1 := gocron.NewScheduler(time.UTC)
 	_, err := s1.Every(15).Minute().Do(func() {
@@ -374,12 +373,8 @@ func (s service) Schedulednotification() {
 			//message = s.PrepareScheduledMessageNoOperetingToTelegramChat(siteId, responseSite)
 			//}
 
-			b, err := LoadRecipients()
-			if err != nil {
-				log.Printf("got error from json parser")
-			}
 			if message != "" {
-				for _, chatId := range b {
+				for _, chatId := range recipients {
 					// Send the punchline back to Telegram
 					log.Printf("send to chatId, %s", strconv.Itoa(chatId))
 					telegramResponseBody, err := s.SendTextToTelegramChat(chatId, message)
@@ -403,9 +398,8 @@ func (s service) Schedulednotification() {
 			message = s.PrepareScheduledMessageAlarmVestasToTelegramChat(turbinaVestas)
 		}
 
-		b, err := LoadRecipients()
 		if message != "" {
-			for _, chatId := range b {
+			for _, chatId := range recipients {
 				// Send the punchline back to Telegram
 				log.Printf("send to chatId, %s", strconv.Itoa(chatId))
 				telegramResponseBody, err := s.SendTextToTelegramChat(chatId, message)
@@ -426,17 +420,13 @@ func (s service) Schedulednotification() {
 	log.Printf("next run at: %s", t)
 }
 
-func (s service) Readyz() {
+func (s service) Readyz(recipients []int) {
 	var message string
 	s2 := gocron.NewScheduler(time.UTC)
 	_, err := s2.Every(1).Hour().Do(func() {
-		b, err := LoadRecipients()
-		if err != nil {
-			log.Printf("got error from json parser")
-		}
 		message = "Bot Turbine di Peppe Canalella Running " + emoji.BeamingFaceWithSmilingEyes.String()
 		if message != "" {
-			for _, chatId := range b {
+			for _, chatId := range recipients {
 				// Send the punchline back to Telegram
 				log.Printf("send to chatId, %s", strconv.Itoa(chatId))
 				telegramResponseBody, err := s.SendTextToTelegramChat(chatId, message)
@@ -454,18 +444,4 @@ func (s service) Readyz() {
 	}
 	_, t := s2.NextRun()
 	log.Printf("next run at: %s", t)
-}
-
-func LoadRecipients() ([]int, error) {
-	var arr []int
-	recipientsFile, err := os.Open("recipients.json")
-	defer func(configFile *os.File) {
-		err := configFile.Close()
-		if err != nil {
-			log.Printf("could not decode json recipients %s\n", err.Error())
-		}
-	}(recipientsFile)
-	jsonParser := json.NewDecoder(recipientsFile)
-	err = jsonParser.Decode(&arr)
-	return arr, err
 }

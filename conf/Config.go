@@ -39,3 +39,17 @@ func Load() (Config, error) {
 	err = jsonParser.Decode(&config)
 	return config, err
 }
+
+func LoadRecipients() ([]int, error) {
+	var arr []int
+	recipientsFile, err := os.Open("recipients.json")
+	defer func(configFile *os.File) {
+		err := configFile.Close()
+		if err != nil {
+			log.Printf("could not decode json recipients %s\n", err.Error())
+		}
+	}(recipientsFile)
+	jsonParser := json.NewDecoder(recipientsFile)
+	err = jsonParser.Decode(&arr)
+	return arr, err
+}
