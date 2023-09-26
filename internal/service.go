@@ -21,19 +21,19 @@ import (
 )
 
 type Service interface {
-	GetTurbineInfo(siteId string) (string, error)
+	GetNorthernPowerTurbineInfo(siteId string) (string, error)
 
 	GetVestasTurbineInfo() (vestas.Vestas, error)
 
-	PrepareTextToTelegramChat(command string, turbine site_data.Turbine) string
+	PrepareNorthernPowerTextToTelegramChat(command string, turbine site_data.Turbine) string
 
 	PrepareVestasTextToTelegramChat(vestas vestas.Vestas) string
 
-	PrepareScheduledMessageFaultedToTelegramChat(command string, turbine site_data.Turbine) string
+	PrepareScheduledMessageNorthernPowerFaultedToTelegramChat(command string, turbine site_data.Turbine) string
 
-	PrepareScheduledMessageEnvToTelegramChat(siteId string, turbine site_data.Turbine) string
+	PrepareScheduledMessageNorthernPowerEnvToTelegramChat(siteId string, turbine site_data.Turbine) string
 
-	PrepareScheduledMessageNoDataToTelegramChat(siteId string, turbine site_data.Turbine) string
+	PrepareScheduledMessageNorthernPowerNoDataToTelegramChat(siteId string, turbine site_data.Turbine) string
 
 	//PrepareScheduledMessageNoOperetingToTelegramChat(siteId string, turbine site_data.Turbine) string
 
@@ -45,7 +45,7 @@ type Service interface {
 
 	SendTextToTelegramChat(chatId int, text string) (string, error)
 
-	Schedulednotification(recipients []int)
+	ScheduledNotification(recipients []int)
 
 	Readyz(recipients []int)
 }
@@ -58,7 +58,7 @@ func NewService(config conf.Config) Service {
 	return service{config}
 }
 
-func (s service) GetTurbineInfo(siteId string) (string, error) {
+func (s service) GetNorthernPowerTurbineInfo(siteId string) (string, error) {
 
 	hc := http.Client{}
 	form := url.Values{}
@@ -104,7 +104,7 @@ func (s service) GetVestasTurbineInfo() (vestas.Vestas, error) {
 
 	response, err := hc.Do(req)
 	if err != nil {
-		log.Printf("error while calling Northern Power API %s", err.Error())
+		log.Printf("error while calling Vestas API %s", err.Error())
 		return vestas.Vestas{}, err
 	}
 	log.Println(response.Status)
@@ -117,7 +117,7 @@ func (s service) GetVestasTurbineInfo() (vestas.Vestas, error) {
 
 	response, err = hc.Do(req)
 	if err != nil {
-		log.Printf("error while calling Northern Power API %s", err.Error())
+		log.Printf("error while calling Vestas API %s", err.Error())
 		return vestas.Vestas{}, err
 	}
 	log.Println(response.Status)
@@ -130,7 +130,7 @@ func (s service) GetVestasTurbineInfo() (vestas.Vestas, error) {
 
 	response, err = hc.Do(req)
 	if err != nil {
-		log.Printf("error while calling Northern Power API %s", err.Error())
+		log.Printf("error while calling Vestas API %s", err.Error())
 		return vestas.Vestas{}, err
 	}
 	log.Println(response.Status)
@@ -143,7 +143,7 @@ func (s service) GetVestasTurbineInfo() (vestas.Vestas, error) {
 
 	response, err = hc.Do(req)
 	if err != nil {
-		log.Printf("error while calling Northern Power API %s", err.Error())
+		log.Printf("error while calling Vestas API %s", err.Error())
 		return vestas.Vestas{}, err
 	}
 	log.Println(response.Status)
@@ -209,7 +209,7 @@ func (s service) SendTextToTelegramChat(chatId int, text string) (string, error)
 		s.config.TelegramApiBaseUrl+s.config.TelegramTokenEnv+s.config.TelegramApiSendMessage,
 		url.Values{
 			"chat_id": {strconv.Itoa(chatId)},
-			"via_bot": {"@TurbineNorthernPowerBot"},
+			"via_bot": {"@TurbinePeppeCanalellaBot"},
 			"text":    {text},
 		})
 
@@ -244,7 +244,7 @@ func (s service) PrepareVestasTextToTelegramChat(vestas vestas.Vestas) string {
 		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + time.Now().String() + "\n\n"
 }
 
-func (s service) PrepareTextToTelegramChat(siteId string, turbine site_data.Turbine) string {
+func (s service) PrepareNorthernPowerTextToTelegramChat(siteId string, turbine site_data.Turbine) string {
 
 	siteIdReal := ReturnSiteId(siteId)
 
@@ -255,7 +255,7 @@ func (s service) PrepareTextToTelegramChat(siteId string, turbine site_data.Turb
 		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + turbine.Site.Ts + "\n\n"
 }
 
-func (s service) PrepareScheduledMessageFaultedToTelegramChat(siteId string, turbine site_data.Turbine) string {
+func (s service) PrepareScheduledMessageNorthernPowerFaultedToTelegramChat(siteId string, turbine site_data.Turbine) string {
 	siteIdReal := ReturnSiteId(siteId)
 	return emoji.RadioButton.String() + "TURBINA: " + siteIdReal + "\n\n" +
 		emoji.Warning.String() + "RIVELATA ANOMALIA: Faulted\n" +
@@ -265,7 +265,7 @@ func (s service) PrepareScheduledMessageFaultedToTelegramChat(siteId string, tur
 		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + turbine.Site.Ts + "\n\n"
 }
 
-func (s service) PrepareScheduledMessageAlarmVestasToTelegramChat(vestas vestas.Vestas) string {
+func (s service) PrepareScheduledMessageVestasAlarmToTelegramChat(vestas vestas.Vestas) string {
 	return emoji.RadioButton.String() + "TURBINA VESTAS V2960" + "\n\n" +
 		emoji.Warning.String() + "RIVELATA ANOMALIA: Alarm!\n" +
 		emoji.Rocket.String() + "POTENZA TURBINA: " + vestas.Power + "kW" + "\n" +
@@ -274,7 +274,7 @@ func (s service) PrepareScheduledMessageAlarmVestasToTelegramChat(vestas vestas.
 		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + time.Now().String() + "\n\n"
 }
 
-func (s service) PrepareScheduledMessageEnvToTelegramChat(siteId string, turbine site_data.Turbine) string {
+func (s service) PrepareScheduledMessageNorthernPowerEnvToTelegramChat(siteId string, turbine site_data.Turbine) string {
 	siteIdReal := ReturnSiteId(siteId)
 	return emoji.RadioButton.String() + "TURBINA: " + siteIdReal + "\n\n" +
 		emoji.Warning.String() + "RIVELATA ANOMALIA: SPIA BLU " + emoji.BlueCircle.String() + "\n" +
@@ -284,7 +284,7 @@ func (s service) PrepareScheduledMessageEnvToTelegramChat(siteId string, turbine
 		emoji.ExclamationMark.String() + "ULTIMO AGGIORNAMENTO: " + turbine.Site.Ts + "\n\n"
 }
 
-func (s service) PrepareScheduledMessageNoDataToTelegramChat(siteId string, turbine site_data.Turbine) string {
+func (s service) PrepareScheduledMessageNorthernPowerNoDataToTelegramChat(siteId string, turbine site_data.Turbine) string {
 	siteIdReal := ReturnSiteId(siteId)
 	return emoji.RadioButton.String() + "TURBINA: " + siteIdReal + "\n\n" +
 		emoji.Warning.String() + "PROBLEMA DI CONNESSIONE: TUTTI I DATI SONO A 0.\n" +
@@ -310,9 +310,9 @@ func (s service) PrepareErrorMessageToTelegramChat() string {
 }
 
 func (s service) PrepareStartMessageToTelegramChat() string {
-	return emoji.WavingHand.String() + " Ciao! io sono @TurbineNorthernPowerBot, e posso aiutarti a monitorare le tue belle turbine!" + "\n\n" +
+	return emoji.WavingHand.String() + " Ciao! io sono @TurbinePeppeCanalellaBot, e posso aiutarti a monitorare le tue belle turbine!" + "\n\n" +
 		emoji.CheckMarkButton.String() + "Le cose da sapere" + "\n\n" +
-		emoji.SmallOrangeDiamond.String() + "Il servizio è gratis, ancora in pre-alpha, realizzato da @mariocana."
+		emoji.SmallOrangeDiamond.String() + "Realizzato da @mariocana."
 }
 
 func ReturnSiteId(siteId string) string {
@@ -333,13 +333,13 @@ func ReturnSiteId(siteId string) string {
 	return siteIdReal
 }
 
-func (s service) Schedulednotification(recipients []int) {
+func (s service) ScheduledNotification(recipients []int) {
 	var message string
 	s1 := gocron.NewScheduler(time.UTC)
 	_, err := s1.Every(15).Minute().Do(func() {
 		a := []string{"1384", "1376", "1396", "1397", "1377"}
 		for _, siteId := range a {
-			siteInfo, err := s.GetTurbineInfo(siteId)
+			siteInfo, err := s.GetNorthernPowerTurbineInfo(siteId)
 			if err != nil {
 				log.Printf("got error when calling Northern Power API %s", err.Error())
 				return
@@ -353,9 +353,9 @@ func (s service) Schedulednotification(recipients []int) {
 			responseSite.DailyPower, _ = s.GetDailyPowerInfo(siteId)
 
 			if responseSite.Site.Device.Faulted == "1" {
-				message = s.PrepareScheduledMessageFaultedToTelegramChat(siteId, responseSite)
+				message = s.PrepareScheduledMessageNorthernPowerFaultedToTelegramChat(siteId, responseSite)
 			} else if responseSite.Site.Device.Env == "1" {
-				message = s.PrepareScheduledMessageEnvToTelegramChat(siteId, responseSite)
+				message = s.PrepareScheduledMessageNorthernPowerEnvToTelegramChat(siteId, responseSite)
 			} else if responseSite.Site.Device.Power == "0" &&
 				responseSite.Site.Device.Wndspd == "0" &&
 				responseSite.Site.Device.Ambtmp == "0" &&
@@ -367,7 +367,7 @@ func (s service) Schedulednotification(recipients []int) {
 				responseSite.Site.Device.Warning == "0" &&
 				responseSite.Site.Device.Env == "0" &&
 				responseSite.Site.Device.Ext == "0" {
-				message = s.PrepareScheduledMessageNoDataToTelegramChat(siteId, responseSite)
+				message = s.PrepareScheduledMessageNorthernPowerNoDataToTelegramChat(siteId, responseSite)
 			} //else if responseSite.Site.Device.Operating == "0" &&
 			//responseSite.Site.Device.Faulted == "0" {
 			//message = s.PrepareScheduledMessageNoOperetingToTelegramChat(siteId, responseSite)
@@ -395,7 +395,7 @@ func (s service) Schedulednotification(recipients []int) {
 		}
 
 		if turbinaVestas.Alarm == "1" {
-			message = s.PrepareScheduledMessageAlarmVestasToTelegramChat(turbinaVestas)
+			message = s.PrepareScheduledMessageVestasAlarmToTelegramChat(turbinaVestas)
 		}
 
 		if message != "" {

@@ -27,7 +27,7 @@ func main() {
 	}
 
 	scheduler := internal.NewService(cfg)
-	scheduler.Schedulednotification(recipients)
+	scheduler.ScheduledNotification(recipients)
 	scheduler.Readyz(recipients)
 
 	log.Println("Listening ", server.Addr)

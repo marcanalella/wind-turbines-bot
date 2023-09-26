@@ -1,8 +1,8 @@
-rm -rf turbine-northern-power-bot
+rm -rf wind-turbines-bot
 
-git clone git@github.com:marcanalella/turbine-northern-power-bot.git
+git clone git@github.com:marcanalella/wind-turbines-bot.git
 
-docker build -t bot ./turbine-northern-power-bot
+docker build -t bot ./wind-turbines-bot
 
 docker stop bot-turbine || true && docker rm bot-turbine || true
 
