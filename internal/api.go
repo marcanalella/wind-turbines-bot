@@ -81,7 +81,7 @@ func HandleTelegramWebHook(service Service) func(w http.ResponseWriter, r *http.
 			a := []string{"1384", "1376", "1396", "1397", "1377"}
 			b := make([]string, len(a))
 			for i, siteId := range a {
-				siteInfo, err = service.GetTurbineInfo(siteId)
+				siteInfo, err = service.GetNorthernPowerTurbineInfo(siteId)
 				if err != nil {
 					log.Printf("got error when calling Northern Power API %s", err.Error())
 					return
@@ -95,9 +95,9 @@ func HandleTelegramWebHook(service Service) func(w http.ResponseWriter, r *http.
 				responseSite.DailyPower, _ = service.GetDailyPowerInfo(siteId)
 
 				if responseSite.Site.Device.Faulted == "1" {
-					b[i] = service.PrepareScheduledMessageFaultedToTelegramChat(siteId, responseSite)
+					b[i] = service.PrepareScheduledMessageNorthernPowerFaultedToTelegramChat(siteId, responseSite)
 				} else if responseSite.Site.Device.Env == "1" {
-					b[i] = service.PrepareScheduledMessageEnvToTelegramChat(siteId, responseSite)
+					b[i] = service.PrepareScheduledMessageNorthernPowerEnvToTelegramChat(siteId, responseSite)
 				} else if responseSite.Site.Device.Power == "0" &&
 					responseSite.Site.Device.Wndspd == "0" &&
 					responseSite.Site.Device.Ambtmp == "0" &&
@@ -109,12 +109,12 @@ func HandleTelegramWebHook(service Service) func(w http.ResponseWriter, r *http.
 					responseSite.Site.Device.Warning == "0" &&
 					responseSite.Site.Device.Env == "0" &&
 					responseSite.Site.Device.Ext == "0" {
-					b[i] = service.PrepareScheduledMessageNoDataToTelegramChat(siteId, responseSite)
+					b[i] = service.PrepareScheduledMessageNorthernPowerNoDataToTelegramChat(siteId, responseSite)
 					//} else if responseSite.Site.Device.Operating == "0" &&
 					//responseSite.Site.Device.Faulted == "0" {
 					//b[i] = service.PrepareScheduledMessageNoOperetingToTelegramChat(siteId, responseSite)
 				} else {
-					b[i] = service.PrepareTextToTelegramChat(siteId, responseSite)
+					b[i] = service.PrepareNorthernPowerTextToTelegramChat(siteId, responseSite)
 				}
 			}
 
