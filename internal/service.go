@@ -318,8 +318,8 @@ func (s service) PrepareStartMessageToTelegramChat() string {
 func ReturnSiteId(siteId string) string {
 	var siteIdReal string
 	switch siteId {
-	//case "1376":
-	//	siteIdReal = "1042 - CORB"
+	case "1376":
+		siteIdReal = "1042 - CORB"
 	case "1377":
 		siteIdReal = "1055"
 	case "1384":
