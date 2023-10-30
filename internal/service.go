@@ -337,7 +337,7 @@ func (s service) ScheduledNotification(recipients []int) {
 	var message string
 	s1 := gocron.NewScheduler(time.UTC)
 	_, err := s1.Every(15).Minute().Do(func() {
-		a := []string{"1384", "1376", "1396", "1397", "1377"}
+		a := []string{"1384", "1396", "1397", "1377"}
 		for _, siteId := range a {
 			siteInfo, err := s.GetNorthernPowerTurbineInfo(siteId)
 			if err != nil {
