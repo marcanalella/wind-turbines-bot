@@ -78,7 +78,7 @@ func HandleTelegramWebHook(service Service) func(w http.ResponseWriter, r *http.
 			}
 			return
 		} else {
-			a := []string{"1384", "1396", "1397", "1377"}
+			a := []string{"1384", "1376", "1396", "1397", "1377"}
 			b := make([]string, len(a))
 			for i, siteId := range a {
 				siteInfo, err = service.GetNorthernPowerTurbineInfo(siteId)
