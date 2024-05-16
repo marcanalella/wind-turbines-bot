@@ -21,7 +21,7 @@ COPY . .
 RUN go build -o main .
 
 # Export necessary port
-EXPOSE 5000
+#EXPOSE 5005
 
 # Command to run when starting the container
 CMD ["/build/main"]
