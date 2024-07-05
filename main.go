@@ -7,6 +7,7 @@ import (
 	"github.com/rs/cors"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -21,8 +22,13 @@ func main() {
 		log.Fatalf("could not decode recipients %s\n", err.Error())
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = cfg.Port
+	}
+
 	server := &http.Server{
-		Addr:    cfg.Address + ":" + cfg.Port,
+		Addr:    cfg.Address + ":" + port,
 		Handler: buildHandler(cfg),
 	}
 
@@ -44,8 +50,8 @@ func buildHandler(cfg conf.Config) http.Handler {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
-		AllowedHeaders:   []string{"Authorization,Content-Type"},
-		AllowedMethods:   []string{"GET,POST,PUT,DELETE,PATCH,OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 	})
 
 	routerGroup := router.PathPrefix("/api/v1").Subrouter()
